@@ -1,5 +1,4 @@
 import datetime
-from view.ADCDevice import *
 
 
 class Mesure:
