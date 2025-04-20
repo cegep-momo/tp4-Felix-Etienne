@@ -5,5 +5,4 @@ if __name__ == "__main__":
         FICHIER_JSON = "resultats.json"
         app = Controler()
     except KeyboardInterrupt :
-        
         print("FIN")

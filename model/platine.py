@@ -9,6 +9,7 @@ class Platine:
         self.running = False
         self.demarrer_thread = threading.Thread(target=self.demarrer_button, daemon=True)
         self.demarrer = False
+        self.fin = False
         self.adc = ADCDevice()
         if(self.adc.detectI2C(0x4b)):
             self.adc = ADS7830()
@@ -17,15 +18,13 @@ class Platine:
             exit(-1)
     
     def start(self):
-        if self.boutons["Demarrer"].is_active:
-            self.running = not self.running
+        if not self.running and self.boutons["Demarrer"].is_active:
             while self.boutons["Demarrer"].is_active:
                 sleep(0.1)
+            self.running = True
+            self.demarrer_thread.start()
             return self.update()
         elif self.running:
-            if not self.demarrer:
-                self.demarrer_thread.start()
-                self.demarrer = True
             elapsed_time = 0
             while elapsed_time < 5:
                 if self.boutons["Mesure"].is_active:
@@ -33,19 +32,22 @@ class Platine:
                         sleep(0.1)
                     elapsed_time = 0
                     return self.update()
+                elif self.fin:
+                    self.running = False
+                    return "Fin"
                 else:
                     sleep(0.1)
                     elapsed_time += 0.1
-            return self.update()
+            return self.update() 
 
                 
     def demarrer_button(self):
-        while self.demarrer:
+        while self.running:
             if self.boutons["Demarrer"].is_active:
-                self.running = False
-                self.demarrer = False
                 while self.boutons["Demarrer"].is_active:
                     sleep(0.1)
+                self.fin = True
+                
 
     
     def update(self):
