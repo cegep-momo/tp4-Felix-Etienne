@@ -2,10 +2,12 @@ import threading
 from time import sleep
 from gpiozero import Button
 from ADCDevice import *
+from model.mesure import Mesure
 
 class Platine:
-    def __init__(self, bouton_demarrer, bouton_mesure):
+    def __init__(self, bouton_demarrer, bouton_mesure, FICHIER_JSON):
         self.boutons = {"Demarrer":Button(bouton_demarrer),"Mesure":Button(bouton_mesure)}
+        self.FICHIER_JSON = FICHIER_JSON
         self.running = False
         self.demarrer_thread = threading.Thread(target=self.demarrer_button, daemon=True)
         self.demarrer = False
@@ -34,7 +36,7 @@ class Platine:
                     return self.update()
                 elif self.fin:
                     self.running = False
-                    return "Fin"
+                    return False
                 else:
                     sleep(0.1)
                     elapsed_time += 0.1
@@ -53,7 +55,9 @@ class Platine:
     def update(self):
         valeurADC = self.adc.analogRead(0)
         voltage = valeurADC / 255.0 * 3.3
-        return {0:'ValeurADC: %d'%(valeurADC), 1:'Voltage : %.2f'%(voltage)}
+        self.mesure = Mesure({"valeurADC":valeurADC, "voltage":voltage}, self.FICHIER_JSON)
+        self.mesure.__repr__()
+        return self.mesure.afficherMesure()
 
     
     def quitter(self):
